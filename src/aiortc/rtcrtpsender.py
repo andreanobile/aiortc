@@ -8,6 +8,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 from av import AudioFrame
 from av.frame import Frame
+from av.packet import Packet
 
 from . import clock, rtp
 from .codecs import get_capabilities, get_encoder, is_rtx
@@ -283,8 +284,10 @@ class RTCRtpSender:
             payloads, timestamp = await self.__loop.run_in_executor(
                 None, self.__encoder.encode, data, force_keyframe
             )
-        else:
+        elif isinstance(data, Packet):
             payloads, timestamp = self.__encoder.pack(data)
+        elif isinstance(data, RTCEncodedFrame):
+            return data
 
         return RTCEncodedFrame(payloads, timestamp, audio_level)
 
